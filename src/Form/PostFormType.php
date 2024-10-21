@@ -2,9 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\Category;
-use App\Entity\Image;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\Post;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -12,36 +10,37 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 
-class ImageFormType extends AbstractType
+class PostFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('file', FileType::class,[
-                'mapped' => false,
+            ->add('title')
+            ->add('content')
+            ->add('image', FileType::class, [
+                'label' => 'Upload Image',
+                'mapped' => false,  // This is important since we are handling the file manually
+                'required' => false,
                 'constraints' => [
                     new File([
+                        'maxSize' => '2M',
                         'mimeTypes' => [
                             'image/jpeg',
                             'image/png',
+                            'image/gif',
                         ],
-                        'mimeTypesMessage' => 'Please upload a valid image file',
+                        'mimeTypesMessage' => 'Please upload a valid image file (JPEG, PNG, GIF)',
                     ])
                 ],
             ])
-            ->add('numLikes', null, ['attr' => ['class'=>'form-control']])
-            ->add('numViews', null, ['attr' => ['class'=>'form-control']])
-            ->add('numDownloads', null, ['attr' => ['class'=>'form-control']])
-            ->add('category', EntityType::class, array(
-                'class' => Category::class,
-                'choice_label' => 'name'))
-            ->add('Send', SubmitType::class, ['attr' => ['class'=>'pull-right btn btn-lg sr-button']]);;
+            ->add('Send', SubmitType::class);
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Image::class,
+            'data_class' => Post::class,
         ]);
     }
 }
