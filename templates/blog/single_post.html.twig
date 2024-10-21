@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+{% block body%}
+{% if not post %}
+    <h2>Post not found</h2>
+{% else %}
+    {% block title%} {{post.title}}{% endblock %}
+    {{asset('images/blog/' ~ post.image) }}
+    {{post.content}}
+    {{post.postUser.name}}
+    {{post.publishedAt | date('d') }} {{ post.publishedAt | date('F') }}
+{% endif %}
+{% endblock %}

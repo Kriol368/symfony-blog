@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Image;
 use App\Entity\Post;
 use App\Form\PostFormType;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,11 +20,21 @@ class BlogController extends AbstractController
         return $this->render('blog.html.twig', []);
     }
 
-    #[Route('/single_post', name: 'single_post')]
-    public function single_post(): Response
+    #[Route('/single_post/{slug}', name: 'single_post')]
+    public function post(ManagerRegistry $doctrine, $slug): Response
     {
-        return $this->render('single_post.html.twig', []);
+        $repositorio = $doctrine->getRepository(Post::class);
+        $post = $repositorio->findOneBy(["slug" => $slug]);
+
+        if (!$post) {
+            throw $this->createNotFoundException('The post does not exist');
+        }
+
+        return $this->render('blog/single_post.html.twig', [
+            'post' => $post,
+        ]);
     }
+
     #[Route('/blog/new', name: 'new_post')]
     public function newPost(ManagerRegistry $doctrine, Request $request, SluggerInterface $slugger): Response
     {
@@ -37,7 +46,7 @@ class BlogController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $post = $form->getData();
-            $post->setSlug($slugger->slug($post->getTitle()));
+            $post->setSlug($slugger->slug($post->getTitle())->toString());
             $post->setPostUser($this->getUser());
             $post->setNumLikes(0);
             $post->setNumComments(0);
@@ -51,7 +60,7 @@ class BlogController extends AbstractController
 
                 try {
                     $file->move(
-                        $this->getParameter('images_directory'), // Ensure you have this parameter configured
+                        $this->getParameter('images_directory'),
                         $newFilename
                     );
                 } catch (FileException $e) {
@@ -65,12 +74,15 @@ class BlogController extends AbstractController
             $entityManager = $doctrine->getManager();
             $entityManager->persist($post);
             $entityManager->flush();
+
+            // Optional flash message
+            $this->addFlash('success', 'Post created successfully!');
+
+            return $this->redirectToRoute('single_post', ["slug" => $post->getSlug()]);
         }
 
         return $this->render('blog/new_post.html.twig', [
             'form' => $form->createView(),
         ]);
     }
-
-
 }
