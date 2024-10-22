@@ -1,12 +1,34 @@
+{# templates/blog/single_post.html.twig #}
 {% extends 'base.html.twig' %}
-{% block body%}
-{% if not post %}
-    <h2>Post not found</h2>
-{% else %}
-    {% block title%} {{post.title}}{% endblock %}
-    {{asset('images/blog/' ~ post.image) }}
-    {{post.content}}
-    {{post.postUser.name}}
-    {{post.publishedAt | date('d') }} {{ post.publishedAt | date('F') }}
-{% endif %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block body %}
+    <div class="post">
+        <h1>{{ post.title }}</h1>
+        <p>{{ post.content }}</p>
+        <img src="{{ asset('images/index/gallery/' ~ post.image) }}" alt="Imagen del post">
+
+        <h2>Comentarios</h2>
+        {% include 'partials/_comment.html.twig' with {'comments': comments} %}
+
+        <h3>Leave a Comment</h3>
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit">Submit Comment</button>
+        {{ form_end(form) }}
+
+        <ul>
+            <li>
+                <a href="{{ path('post_like', {slug: post.slug}) }}">LIKE</a>
+                <i class="fa fa-heart sr-icons"></i>
+                {{ post.numLikes }}
+            </li>
+            <li>
+                <a class="page-scroll" href="#form">COMMENT</a>
+                <i class="fa fa-comments sr-icons"></i>
+                {{ post.numComments }} |
+            </li>
+        </ul>
+    </div>
 {% endblock %}

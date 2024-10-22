@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Post;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,6 +22,26 @@ class PostRepository extends ServiceEntityRepository
         parent::__construct($registry, Post::class);
     }
 
+    public function findByTextPaginated(int $page, string $searchTerm, int $limit = 10)
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->andWhere("p.content LIKE :val OR p.title LIKE :val") // Incluye búsqueda por título
+            ->setParameter('val', '%'.$searchTerm.'%')
+            ->orderBy('p.publishedAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit) // Establece el inicio de los resultados
+            ->setMaxResults($limit); // Establece el límite de resultados por página
+
+        return new Paginator($qb);
+    }
+
+    public function findRecents(int $limit = 5)
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.publishedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 //    /**
 //     * @return Post[] Returns an array of Post objects
 //     */
